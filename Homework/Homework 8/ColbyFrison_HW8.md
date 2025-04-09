@@ -81,6 +81,60 @@ The solution works by using these steps:
 
 This works because in a tree, the diameter must be a path between two leaf nodes. When we run the first BFS, we're guaranteed to find one end of the diameter path. The second BFS then finds the other end.
 
+### Algorithm Description
+
+The algorithm efficiently finds the diameter using two BFS traversals:
+1. **First BFS**: Start BFS from an arbitrary node $u$. Find the node $v$ that is farthest away from $u$. This node $v$ is guaranteed to be one endpoint of *some* diameter of the tree.
+2. **Second BFS**: Start another BFS, this time from the node $v$ identified in the first step. Find the node $w$ that is farthest away from $v$. The distance between $v$ and $w$ is the diameter of the tree.
+
+### Pseudocode
+
+```
+function BFS(graph, start_node):
+    // Initialize distances and parent pointers
+    distances = map of node -> infinity
+    parents = map of node -> null
+    distances[start_node] = 0
+
+    // Initialize queue for BFS
+    queue = new Queue()
+    queue.enqueue(start_node)
+
+    // Keep track of the farthest node found so far
+    farthest_node = start_node
+    max_distance = 0
+
+    while queue is not empty:
+        current_node = queue.dequeue()
+
+        // Update farthest node if current node is farther
+        if distances[current_node] > max_distance:
+            max_distance = distances[current_node]
+            farthest_node = current_node
+
+        // Explore neighbors
+        for neighbor in graph.neighbors(current_node):
+            if distances[neighbor] == infinity: // If neighbor not visited
+                distances[neighbor] = distances[current_node] + 1
+                parents[neighbor] = current_node
+                queue.enqueue(neighbor)
+
+    return farthest_node, max_distance
+
+function findTreeDiameter(tree):
+    // 1. Pick an arbitrary starting node
+    arbitrary_node = tree.getAnyNode()
+
+    // 2. Run first BFS to find one endpoint of the diameter
+    endpoint1, _ = BFS(tree, arbitrary_node)
+
+    // 3. Run second BFS from the first endpoint to find the other endpoint and the diameter
+    endpoint2, diameter = BFS(tree, endpoint1)
+
+    return diameter
+```
+
+
 ### Time Complexity
 
 The algorithm is efficient because:
@@ -93,217 +147,45 @@ This is optimal since we need to at least look at each vertex once to find the d
 
 ---
 
-## 3. Shortest path form a to p
+## 3. Shortest Path from a to p
 
 ### Using BFS
-Breadth-First Search (BFS) is ideal for finding the shortest path in an unweighted graph (or a graph where all edge weights are the same, as in this case). BFS explores vertices layer by layer, ensuring that the first time we reach a vertex, we have found the shortest path to it in terms of the number of edges.
+Breadth-First Search (BFS) is ideal for finding the shortest path in an unweighted graph. It explores vertices layer by layer, ensuring the shortest path is found first.
 
-Steps for BFS:
-    1. Start at vertex aa.
-    2. Use a queue to explore vertices in order of distance (number of edges) from aa.
-    3. Keep track of the parent of each vertex to reconstruct the path.
-    4. Stop when we reach vertex pp.
+**BFS Steps:**
+1. Start at vertex $a$.
+2. Use a queue to explore vertices by distance from $a$.
+3. Track parents to reconstruct the path.
+4. Stop when vertex $p$ is reached.
 
-BFS Execution:
-- **Queue**: Start with vertex aa
-- **Visited**: Mark vertex aa as visited
-- **Distances**: Initialize distance for vertex *a* as 0
-- **Parents**: Track the parent of each vertex for path reconstruction
+**Execution Summary:**
+- Begin with $a$, marking it as visited.
+- Explore neighbors, updating distances and parents.
+- Continue until $p$ is reached.
+- Reconstruct the path using parent pointers.
 
-**Step 1**: Dequeue $a$, explore neighbors $b$ and $c$.
-- Enqueue $b$ and $c$
-- Distance: $b:1$, $c:1$
-- Parents: $b \leftarrow a$, $c \leftarrow a$
-- Queue: $b,c$
-
-**Step 2**: Dequeue $b$, explore neighbors $d,e$ (skip $a$)
-- Enqueue $d$ and $e$
-- Distance: $d:2$, $e:2$
-- Parents: $d \leftarrow b$, $e \leftarrow b$
-- Queue: $c,d,e$
-
-**Step 3**: Dequeue $c$, explore neighbors $e,f$ (skip $a$)
-- $e$ is already visited, so enqueue $f$
-- Distance: $f:2$
-- Parent: $f \leftarrow c$
-- Queue: $d,e,f$
-
-**Step 4**: Dequeue $d$, explore neighbors $g,h$ (skip $b$)
-- Enqueue $g$ and $h$
-- Distance: $g:3$, $h:3$
-- Parents: $g \leftarrow d$, $h \leftarrow d$
-- Queue: $e,f,g,h$
-
-**Step 5**: Dequeue $e$, explore neighbors $h,i$ (skip $b,c$)
-- $h$ is already visited, so enqueue $i$
-- Distance: $i:3$
-- Parent: $i \leftarrow e$
-- Queue: $f,g,h,i$
-
-**Step 6**: Dequeue $f$, explore neighbors $i,j$ (skip $c$)
-- $i$ is already visited, so enqueue $j$
-- Distance: $j:3$
-- Parent: $j \leftarrow f$
-- Queue: $g,h,i,j$
-
-**Step 7**: Dequeue $g$, explore neighbor $k$ (skip $d$)
-- Enqueue $k$
-- Distance: $k:4$
-- Parent: $k \leftarrow g$
-- Queue: $h,i,j,k$
-
-**Step 8**: Dequeue $h$, explore neighbors $k,l$ (skip $d,e$)
-- $k$ is already visited, so enqueue $l$
-- Distance: $l:4$
-- Parent: $l \leftarrow h$
-- Queue: $i,j,k,l$
-
-**Step 9**: Dequeue $i$, explore neighbors $l,m$ (skip $e,f$)
-- $l$ is already visited, so enqueue $m$
-- Distance: $m:4$
-- Parent: $m \leftarrow i$
-- Queue: $j,k,l,m$
-
-**Step 10**: Dequeue $j$, explore neighbor $m$ (skip $f$)
-- $m$ is already visited
-- Queue: $k,l,m$
-
-**Step 11**: Dequeue $k$, explore neighbor $n$ (skip $g,h$)
-- Enqueue $n$
-- Distance: $n:5$
-- Parent: $n \leftarrow k$
-- Queue: $l,m,n$
-
-**Step 12**: Dequeue $l$, explore neighbors $n,o$ (skip $h,i$)
-- $n$ is already visited, so enqueue $o$
-- Distance: $o:5$
-- Parent: $o \leftarrow l$
-- Queue: $m,n,o$
-
-**Step 13**: Dequeue $m$, explore neighbor $o$ (skip $i,j$)
-- $o$ is already visited
-- Queue: $n,o$
-
-**Step 14**: Dequeue $n$, explore neighbor $p$ (skip $k,l$)
-- Enqueue $p$
-- Distance: $p:6$
-- Parent: $p \leftarrow n$
-- Queue: $o,p$
-
-**Step 15**: Dequeue $o$, explore neighbor $p$ (skip $l,m$)
-- $p$ is already visited
-- Queue: $p$
-
-**Step 16**: Dequeue $p$, we've reached the target
-
-Path Reconstruction:
-- $p \leftarrow n \leftarrow k \leftarrow g \leftarrow d \leftarrow b \leftarrow a$
-- Path: $a \rightarrow b \rightarrow d \rightarrow g \rightarrow k \rightarrow n \rightarrow p$
+**Result:**
+- Shortest path: $a \rightarrow b \rightarrow d \rightarrow g \rightarrow k \rightarrow n \rightarrow p$
 - Path length: 6 edges
 
-Shortest Path using BFS:
+### Using Dijkstra's Algorithm
+Dijkstra's algorithm is used for graphs with non-negative weights. Here, it behaves like BFS since all weights are 1.
 
-The shortest path from $a$ to $p$ is $a \rightarrow b \rightarrow d \rightarrow g \rightarrow k \rightarrow n \rightarrow p$, with a total distance of 6 (since each edge has weight 1).
+**Dijkstra's Steps:**
+1. Start at vertex $a$.
+2. Use a priority queue to explore vertices by increasing distance.
+3. Track parents for path reconstruction.
+4. Stop when vertex $p$ is reached.
 
-### Using Dijkstra's algorithm
+**Execution Summary:**
+- Initialize distances and priority queue with $a$.
+- Explore neighbors, updating distances and parents.
+- Continue until $p$ is reached.
+- Reconstruct the path using parent pointers.
 
-Dijkstra's algorithm is typically used for graphs with non-negative edge weights. Since all edge weights are 1, Dijkstra's algorithm will behave similarly to BFS in this case, as it will explore vertices in order of increasing distance from the source.
-
-Steps for Dijkstra's Algorithm:
-1. Start at vertex $a$
-2. Maintain a priority queue of vertices, prioritized by their distance from $a$
-3. Keep track of parents for path reconstruction
-4. Stop when we reach vertex $p$
-
-Dijkstra's Execution:
-- **Priority Queue**: Start with vertex $a$
-- **Visited**: Empty initially
-- **Distances**: Initialize $a:0$, all others: $\infty$
-- **Parents**: Track parent of each vertex for path reconstruction
-
-**Step 1**: Extract $a$ (distance 0), explore neighbors $b$ and $c$
-- Update distances: $b:1$, $c:1$
-- Parents: $b \leftarrow a$, $c \leftarrow a$
-- Queue: $(b,1),(c,1)$
-
-**Step 2**: Extract $b$ (distance 1), explore neighbors $d,e$
-- Update distances: $d:2$, $e:2$
-- Parents: $d \leftarrow b$, $e \leftarrow b$
-- Queue: $(c,1),(d,2),(e,2)$
-
-**Step 3**: Extract $c$ (distance 1), explore neighbors $e,f$
-- Update: $e:2$ (no change), $f:2$
-- Parent: $f \leftarrow c$
-- Queue: $(d,2),(e,2),(f,2)$
-
-**Step 4**: Extract $d$ (distance 2), explore neighbors $g,h$
-- Update distances: $g:3$, $h:3$
-- Parents: $g \leftarrow d$, $h \leftarrow d$
-- Queue: $(e,2),(f,2),(g,3),(h,3)$
-
-**Step 5**: Extract $e$ (distance 2), explore neighbors $h,i$
-- Update: $h:3$ (no change), $i:3$
-- Parent: $i \leftarrow e$
-- Queue: $(f,2),(g,3),(h,3),(i,3)$
-
-**Step 6**: Extract $f$ (distance 2), explore neighbors $i,j$
-- Update: $i:3$ (no change), $j:3$
-- Parent: $j \leftarrow f$
-- Queue: $(g,3),(h,3),(i,3),(j,3)$
-
-**Step 7**: Extract $g$ (distance 3), explore neighbor $k$
-- Update distance: $k:4$
-- Parent: $k \leftarrow g$
-- Queue: $(h,3),(i,3),(j,3),(k,4)$
-
-**Step 8**: Extract $h$ (distance 3), explore neighbors $k,l$
-- Update: $k:4$ (no change), $l:4$
-- Parent: $l \leftarrow h$
-- Queue: $(i,3),(j,3),(k,4),(l,4)$
-
-**Step 9**: Extract $i$ (distance 3), explore neighbors $l,m$
-- Update: $l:4$ (no change), $m:4$
-- Parent: $m \leftarrow i$
-- Queue: $(j,3),(k,4),(l,4),(m,4)$
-
-**Step 10**: Extract $j$ (distance 3), explore neighbor $m$
-- Update: $m:4$ (no change)
-- Queue: $(k,4),(l,4),(m,4)$
-
-**Step 11**: Extract $k$ (distance 4), explore neighbor $n$
-- Update distance: $n:5$
-- Parent: $n \leftarrow k$
-- Queue: $(l,4),(m,4),(n,5)$
-
-**Step 12**: Extract $l$ (distance 4), explore neighbors $n,o$
-- Update: $n:5$ (no change), $o:5$
-- Parent: $o \leftarrow l$
-- Queue: $(m,4),(n,5),(o,5)$
-
-**Step 13**: Extract $m$ (distance 4), explore neighbor $o$
-- Update: $o:5$ (no change)
-- Queue: $(n,5),(o,5)$
-
-**Step 14**: Extract $n$ (distance 5), explore neighbor $p$
-- Update distance: $p:6$
-- Parent: $p \leftarrow n$
-- Queue: $(o,5),(p,6)$
-
-**Step 15**: Extract $o$ (distance 5), explore neighbor $p$
-- Update: $p:6$ (no change)
-- Queue: $(p,6)$
-
-**Step 16**: Extract $p$ (distance 6), we've reached the target
-
-Path Reconstruction:
-- $p \leftarrow n \leftarrow k \leftarrow g \leftarrow d \leftarrow b \leftarrow a$
-- Path: $a \rightarrow b \rightarrow d \rightarrow g \rightarrow k \rightarrow n \rightarrow p$
+**Result:**
+- Shortest path: $a \rightarrow b \rightarrow d \rightarrow g \rightarrow k \rightarrow n \rightarrow p$
 - Path length: 6 edges
 
 ### Conclusion
-
-Both BFS and Dijkstra's algorithm found the same shortest path from $a$ to $p$:
-- Path: $a \rightarrow b \rightarrow d \rightarrow g \rightarrow k \rightarrow n \rightarrow p$
-- Distance: 6 edges
-
-This is expected since all edge weights are 1, making both algorithms behave similarly. Note that there are other paths of the same length (e.g., $a \rightarrow c \rightarrow f \rightarrow j \rightarrow m \rightarrow o \rightarrow p$), but either path is a valid shortest path.
+Both BFS and Dijkstra's algorithm yield the same shortest path from $a$ to $p$ with a total distance of 6 edges. This is expected since all edge weights are 1. Other paths of the same length exist, but the one provided is valid.
