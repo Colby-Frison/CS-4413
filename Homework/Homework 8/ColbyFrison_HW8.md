@@ -29,7 +29,7 @@ Each row(1-7) corresponds to a vertex, and each column(e1-e7) corresponds to an 
 Using the incidence rule:
  - $b_{ij} = -1$ if edge $j$ leaves vertex $i$
  - $b_{ij} = 1$ if edge $j$ enters vertex $i$
- - $b_{ij} = 0$ otherwise
+ -  $b_{ij} = 0$ otherwise
 
     |   | e1 | e2 | e3 | e4 | e5 | e6 | e7 |
     |---|----|----|----|----|----|----|----|
